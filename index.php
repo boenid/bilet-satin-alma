@@ -13,12 +13,18 @@ $uname = "";
 $ucompid = 0;
 
 
-if(isset($_SESSION['id']) && isset($_SESSION['role']) && isset($_SESSION['balance']) && isset($_SESSION['full_name']) && isset($_SESSION['company_id'])) {
+if(isset($_SESSION['id'])) {
 	$uid = $_SESSION['id'];
-	$urole = $_SESSION['role'];
-	$ubalance = $_SESSION['balance'];
-	$uname = $_SESSION['full_name'];
-	$ucompid = $_SESSION['company_id'];
+
+	$sql = "SELECT full_name, role, balance, company_id FROM User WHERE id = ?";
+	$stmt = $pdo->prepare($sql);
+	$stmt->execute([$_SESSION['id']]);
+	$kullanici_bilgileri = $stmt->fetch(PDO::FETCH_ASSOC);
+	
+	$urole = $kullanici_bilgileri['role'];
+	$ubalance = $kullanici_bilgileri['balance'];
+	$uname = $kullanici_bilgileri['full_name'];
+	$ucompid = $kullanici_bilgileri['company_id'] ?? -1;
 }
 
 ?>
@@ -188,31 +194,30 @@ if(isset($_SESSION['id']) && isset($_SESSION['role']) && isset($_SESSION['balanc
 </header>
 
 <nav>
-<?php if($uid > 0): ?>
+<?php if ($uid > 0): ?>
 	<div>
-		<a href="hesap-bilgisi.php?<?= $_SESSION['id'] ?>">Hesabım</a>
+		<a href="/hesap-bilgisi.php">Hesabım</a>
 	</div>
-	<?php if(isset($_SESSION['role']) && $urole == "company"): ?>
+
+	<?php if(isset($urole) && $urole != "user"): ?>
 	<div>
-		<a href="sefer-yonetimi.php?<?= htmlspecialchars($ucompid) ?>">Firma Seferleri</a>
+		<a href="/sefer-yonetimi.php">Firma Seferleri</a>
+	</div>
+	<div>
+		<a href="/firma-yonetimi.php">Firma Yönetimi</a>
 	</div>
 	<?php endif; ?>
 
-	<?php if(isset($_SESSION['role']) && $_SESSION['role'] == "admin"): ?>
 	<div>
-		<a href="firma-yonetimi.php ?>">Firmalar</a>
+		<a href="/api/cikis-yap.php">Çıkış yap</a>
 	</div>
-	<?php endif; ?>
-	<div>
-		<label for="cuzdan-bakiyesi">Cüzdan: </label>
-		<p id="cuzdan-bakiyesi"><?= htmlspecialchars($ubalance) ?></p>
-	</div>
+	
 <?php else: ?>
 	<div>
-		<a href="giris.php">Giriş Yap</a>
+		<a href="/giris.php">Giriş Yap</a>
 	</div>
 	<div>
-		<a href="kayit.php">Kayıt Ol</a>
+		<a href="/kayit.php">Kayıt Ol</a>
 	</div>
 <?php endif; ?>
 </nav>
@@ -258,7 +263,7 @@ if (isset($_GET['k-il']) && isset($_GET['v-il'])) {
 	$varis_yapilacak_il	 = filter_var($_GET['v-il'], FILTER_VALIDATE_INT);
 	
 	if (!($kalkis_yapilacak_il === false || $kalkis_yapilacak_il <= 0 || $varis_yapilacak_il === false || $varis_yapilacak_il <= 0)) {
-		$sql = "SELECT b.name, b.logo_path, t.destination_city, t.arrival_time, t.departure_time, t.departure_city, t.price, t.capacity FROM Trips AS t INNER JOIN Bus_Company AS b ON t.company_id = b.id WHERE departure_city = ? AND destination_city = ?";
+		$sql = "SELECT t.id, b.name, b.logo_path, t.destination_city, t.arrival_time, t.departure_time, t.departure_city, t.price, t.capacity FROM Trips AS t INNER JOIN Bus_Company AS b ON t.company_id = b.id WHERE departure_city = ? AND destination_city = ?";
 		$stmt = $pdo->prepare($sql);
 		$stmt->execute([$kalkis_yapilacak_il, $varis_yapilacak_il]);
 		$sefer_arama_sonuclari = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -275,9 +280,10 @@ if (isset($_GET['k-il']) && isset($_GET['v-il'])) {
 			echo '<label for="kalkis-sehri">Kalkış: </label><p id="kalkis-sehri">' . htmlspecialchars(array_search($sefer['departure_city'], $iller)) . '</p><br>';
 			echo '<label for="varis-sehri">İstikamet: </label><p id="varis-sehri">' . htmlspecialchars(array_search($sefer['destination_city'], $iller)) . '</p><br>';
 			echo '<label for="varis-zamani">Varış Zamanı: </label><p id="varis-zamani">' . htmlspecialchars($sefer['arrival_time']) . '</p><br>';
-			echo '<label for="bilet-ucreti">Bilet Ücreti: </label><p id="bilet-ucreti">' . htmlspecialchars($sefer['price']) . '</p><br>';
+			echo '<label for="bilet-ucreti">Bilet Ücreti: </label><p id="bilet-ucreti">' . htmlspecialchars($sefer['price']) . ',00₺</p><br>';
 			echo '<label for="otobus-kapasitesi">Otobüs Kapasitesi: </label><p id="otobus-kapasitesi">' . htmlspecialchars($sefer['capacity']) . '</p><br>';
-			echo '</div><hr>';
+			echo '<a href="/sefer-detayi.php?seferid=' . $sefer['id'] . '">Devam et</a>
+				  </div>';
 		}
 
 		echo '</section>';

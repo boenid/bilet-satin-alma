@@ -113,6 +113,15 @@ if (isset($_SESSION['id'])) {
 	        font-size: 16px;
 	        background-color: #fff;
 	    }
+
+   	    form input[type="password"] {
+	        width: 100%;
+	        padding: 12px;
+	        border: 1px solid #ccc;
+	        border-radius: 4px;
+	        font-size: 16px;
+	        background-color: #fff;
+	    }
 	
 	    /* Konseptteki 'Ara' butonuyla aynı stil, tam genişlikte */
 	    form button {
@@ -139,20 +148,48 @@ if (isset($_SESSION['id'])) {
 	<h1>Beş Dakika Yolculuk</h1>
 </header>
 
+<nav>
+<div>
+	<a href="/index.php">Ana sayfa</a>
+</div>
+</nav>
+
 <main>
-	<section>
-		<form action="/api/kayit.php" method="POST">
+	<?php if (isset($_GET['formdurumu']) && ctype_alnum($_GET['formdurumu'])): ?>
+	<?php switch ($_GET['formdurumu']): case 'eslesmeyenparola':?>
 		<div>
-			<label for="isim">İsminiz:</label>
+		<p>Parolalar eşleşmiyor.</p>
+		</div>
+	<?php break; case 'kayitlikullanici': ?>
+		<div>
+		<p>Aynı e-posta adresine sahip bir kullanıcı zaten kayıtlı.</p>
+		</div>
+	<?php break; case 'isimdealfanumerikharicikarakter': ?>
+		<div>
+		<p>İsminiz aykırı karakterler içeriyor. </p>
+		</div>
+	<?php break; case 'epostadaalfanumerikharicikarakter': ?>
+		<div>
+		<p>E-posta adresiniz aykırı karakterler içeriyor. </p>
+		</div>
+	<?php endswitch; endif; ?>
+	<section>
+		<form action="/api/kayit-olustur.php" method="POST">
+		<div>
+			<label for="isim">İsminiz</label>
 			<input type="text" id="isim" name="fullname">
 		</div>
 		<div>
-			<label for="email">E-Posta:</label>
+			<label for="email">E-Posta</label>
 			<input type="text" id="email" name="email">
 		</div>
 		<div>
-			<label for="passwd">Parola:</label>
-			<input type="text" id="passwd" name="password">
+			<label for="passwd">Parola</label>
+			<input type="password" id="passwd" name="password">
+		</div>
+		<div>
+			<label for="tekrar_passwd">Parola Tekrar</label>
+			<input type="password" id="tekrar_passwd" name="t_password">
 		</div>
 		<div>
 			<button type="submit">Kayıt Ol</button>
