@@ -36,6 +36,10 @@ $stmt->execute([$seferno]);
 
 $sefer_yolcusu = $stmt->fetch(PDO::FETCH_ASSOC)['yolcu_sayisi'];
 
+$sql = "SELECT bs.seat_number FROM Trips AS tp INNER JOIN Tickets AS tk ON tp.id = tk.trip_id INNER JOIN Booked_Seats AS bs ON tk.id = bs.ticket_id";
+$stmt = $pdo->query($sql);
+
+$alinmis_koltuklar = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -307,11 +311,15 @@ $sefer_yolcusu = $stmt->fetch(PDO::FETCH_ASSOC)['yolcu_sayisi'];
 		<form action="bilet-cikart.php" method="POST">
 		<?php for ($i = 0; $i < $seferhk['capacity']; $i++): ?>
 			<div>
-			<input type="checkbox" value="<?= $i + 1 ?>" id="<?= 'k' . ($i + 1) ?>" name="<?= 'k' . ($i + 1) ?>">
-			<label for="<?= 'k' . ($i + 1) ?>"><?= $i . '. koltuk' ?></label>
+			<input type="checkbox" value="<?= $i + 1 ?>" id="<?= 'k' . ($i + 1) ?>" name="<?= 'k' . ($i + 1) ?>" <?php if (in_array($i+1, $alinmis_koltuklar)) echo 'selected disabled';?>>
+			<label for="<?= 'k' . ($i + 1) ?>"><?= ($i+1) . '. koltuk' ?></label>
 			</div>
 		<?php endfor; ?>
 		</form>
+		</div>
+
+		<div>
+			
 		</div>
 	<?php endif; ?>
 	</section>
